@@ -1,5 +1,7 @@
 package school.sorokin.event_manager.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import school.sorokin.event_manager.model.Location;
@@ -13,6 +15,8 @@ import java.util.NoSuchElementException;
 @Service
 public class LocationService {
 
+    private static final Logger log = LoggerFactory.getLogger(LocationService.class);
+
     private final LocationRepository locationRepository;
     private final LocationMapper locationMapper;
 
@@ -23,8 +27,10 @@ public class LocationService {
 
     @Transactional
     public Location create(Location location) {
-        LocationEntity result = locationRepository.save(locationMapper.toEntity(location));
-        return locationMapper.toBusinessEntity(result);
+        LocationEntity locationEntity = locationRepository.save(locationMapper.toEntity(location));
+        Location result = locationMapper.toBusinessEntity(locationEntity);
+        log.info("Create success {}", result);
+        return result;
     }
 
     @Transactional(readOnly = true)
@@ -43,12 +49,16 @@ public class LocationService {
         LocationEntity loaded = loadById(location.getId());
         checkCapacityNotReduced(loaded, location);
         LocationEntity updated = locationMapper.updatedFields(loaded, location);
-        return locationMapper.toBusinessEntity(locationRepository.save(updated));
+        Location result = locationMapper.toBusinessEntity(locationRepository.save(updated));
+        log.info("Update success {}", result);
+        return result;
     }
 
     @Transactional
     public void delete(Long id) {
-        locationRepository.delete(loadById(id));
+        LocationEntity locationEntity = loadById(id);
+        locationRepository.delete(locationEntity);
+        log.info("Delete success {}", locationEntity);
     }
 
     private LocationEntity loadById(Long id) {

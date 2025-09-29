@@ -91,4 +91,15 @@ public class LocationEntity {
     public int hashCode() {
         return Objects.hash(id, name, address, capacity, description);
     }
+
+    @Override
+    public String toString() {
+        return "LocationEntity{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", address='" + address + '\'' +
+                ", capacity=" + capacity +
+                ", description='" + description + '\'' +
+                '}';
+    }
 }

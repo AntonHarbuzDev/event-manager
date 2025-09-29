@@ -72,4 +72,15 @@ public class Location {
     public int hashCode() {
         return Objects.hash(id, name, address, capacity, description);
     }
+
+    @Override
+    public String toString() {
+        return "Location{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", address='" + address + '\'' +
+                ", capacity=" + capacity +
+                ", description='" + description + '\'' +
+                '}';
+    }
 }
