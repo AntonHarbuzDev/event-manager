@@ -31,32 +31,33 @@ public class LocationController {
     }
 
     @PostMapping
-    public ResponseEntity<Location> create(@RequestBody @Valid LocationDto dto) {
+    public ResponseEntity<LocationDto> create(@RequestBody @Valid LocationDto dto) {
         Location created = locationService.create(locationMapper.toBusinessEntity(dto));
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        return ResponseEntity.status(HttpStatus.CREATED).body(locationMapper.toDto(created));
     }
 
     @GetMapping
-    public List<Location> getAll() {
-        return locationService.getAll();
+    public ResponseEntity<List<LocationDto>> getAll() {
+        List<LocationDto> result = locationService.getAll().stream().map(locationMapper::toDto).toList();
+        return ResponseEntity.ok().body(result);
     }
 
     @GetMapping("/{id}")
-    public LocationDto getById(@PathVariable Long id) {
+    public ResponseEntity<LocationDto> getById(@PathVariable Long id) {
         Location location = locationService.getById(id);
-        return locationMapper.toDto(location);
+        return ResponseEntity.ok().body(locationMapper.toDto(location));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Location> update(@PathVariable Long id, @RequestBody @Valid LocationDto dto) {
+    public ResponseEntity<LocationDto> update(@PathVariable Long id, @RequestBody @Valid LocationDto dto) {
         Location locationToUpdate = locationMapper.toBusinessEntity(dto);
         locationToUpdate.setId(id);
         Location updated = locationService.update(locationToUpdate);
-        return ResponseEntity.status(HttpStatus.OK).body(updated);
+        return ResponseEntity.status(HttpStatus.OK).body(locationMapper.toDto(updated));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Location> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         locationService.delete(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

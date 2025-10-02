@@ -21,9 +21,6 @@ public class LocationDto {
     @NotBlank(message = "Description must not be empty")
     private String description;
 
-    public LocationDto() {
-    }
-
     public LocationDto(Long id, String name, String address, int capacity, String description) {
         this.id = id;
         this.name = name;

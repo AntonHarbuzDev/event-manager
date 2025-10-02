@@ -9,52 +9,52 @@ import school.sorokin.event_manager.model.entity.LocationEntity;
 public class LocationMapper {
 
     public Location toBusinessEntity(LocationEntity locationEntity) {
-        Location location = new Location();
-        location.setId(locationEntity.getId());
-        location.setName(locationEntity.getName());
-        location.setAddress(locationEntity.getAddress());
-        location.setCapacity(locationEntity.getCapacity());
-        location.setDescription(locationEntity.getDescription());
-        return location;
+        return new Location(
+                locationEntity.getId(),
+                locationEntity.getName(),
+                locationEntity.getAddress(),
+                locationEntity.getCapacity(),
+                locationEntity.getDescription()
+        );
     }
 
     public LocationEntity toEntity(Location location) {
-        LocationEntity entity = new LocationEntity();
-        entity.setId(location.getId());
-        entity.setName(location.getName());
-        entity.setAddress(location.getAddress());
-        entity.setCapacity(location.getCapacity());
-        entity.setDescription(location.getDescription());
-        return entity;
+        return new LocationEntity(
+                location.getId(),
+                location.getName(),
+                location.getAddress(),
+                location.getCapacity(),
+                location.getDescription()
+        );
     }
 
     public Location toBusinessEntity(LocationDto dto) {
-        Location location = new Location();
-        location.setId(dto.getId());
-        location.setName(dto.getName());
-        location.setAddress(dto.getAddress());
-        location.setCapacity(dto.getCapacity());
-        location.setDescription(dto.getDescription());
-        return location;
+        return new Location(
+                dto.getId(),
+                dto.getName(),
+                dto.getAddress(),
+                dto.getCapacity(),
+                dto.getDescription()
+        );
     }
 
     public LocationDto toDto(Location location) {
-        LocationDto dto = new LocationDto();
-        dto.setId(location.getId());
-        dto.setName(location.getName());
-        dto.setAddress(location.getAddress());
-        dto.setCapacity(location.getCapacity());
-        dto.setDescription(location.getDescription());
-        return dto;
+        return new LocationDto(
+                location.getId(),
+                location.getName(),
+                location.getAddress(),
+                location.getCapacity(),
+                location.getDescription()
+        );
     }
 
     public LocationEntity updatedFields(LocationEntity locationExisting, Location updated) {
-        LocationEntity result = new LocationEntity();
-        result.setId(locationExisting.getId());
-        result.setName(updated.getName());
-        result.setAddress(updated.getAddress());
-        result.setCapacity(updated.getCapacity());
-        result.setDescription(updated.getDescription());
-        return result;
+        return new LocationEntity(
+                locationExisting.getId(),
+                updated.getName(),
+                updated.getAddress(),
+                updated.getCapacity(),
+                updated.getDescription()
+        );
     }
 }

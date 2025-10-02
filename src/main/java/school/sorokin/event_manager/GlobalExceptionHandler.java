@@ -19,7 +19,7 @@ public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler
-    public ResponseEntity<ErrorResponse> handlerNoSuchElementException(NoSuchElementException e) {
+    public ResponseEntity<ErrorResponse> handleNoSuchElementException(NoSuchElementException e) {
         log.debug("Handle no such element exception {}", e.getMessage());
         ErrorResponse errorResponse = new ErrorResponse(
                 "Сущность не найдена",
@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler
-    public ResponseEntity<ErrorResponse> handlerMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         log.debug("Handle method argument not valid exception {}", e.getMessage());
         String errorDetails = e.getBindingResult()
                 .getFieldErrors()
@@ -47,7 +47,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler
-    public ResponseEntity<ErrorResponse> handlerAllException(Exception e) {
+    public ResponseEntity<ErrorResponse> handleAllException(Exception e) {
         log.error("Exception from server {}", e.getMessage());
         ErrorResponse errorResponse = new ErrorResponse(
                 "Внутренняя ошибка сервера",

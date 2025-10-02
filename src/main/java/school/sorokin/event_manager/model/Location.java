@@ -10,9 +10,6 @@ public class Location {
     private int capacity;
     private String description;
 
-    public Location() {
-    }
-
     public Location(Long id, String name, String address, int capacity, String description) {
         this.id = id;
         this.name = name;
