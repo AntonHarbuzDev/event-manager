@@ -3,6 +3,7 @@ package school.sorokin.event_manager.controller;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,6 +31,7 @@ public class LocationController {
         this.locationMapper = locationMapper;
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
     public ResponseEntity<LocationDto> create(@RequestBody @Valid LocationDto dto) {
         Location created = locationService.create(locationMapper.toBusinessEntity(dto));
@@ -37,18 +39,21 @@ public class LocationController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ResponseEntity<List<LocationDto>> getAll() {
         List<LocationDto> result = locationService.getAll().stream().map(locationMapper::toDto).toList();
         return ResponseEntity.ok().body(result);
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ResponseEntity<LocationDto> getById(@PathVariable Long id) {
         Location location = locationService.getById(id);
         return ResponseEntity.ok().body(locationMapper.toDto(location));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<LocationDto> update(@PathVariable Long id, @RequestBody @Valid LocationDto dto) {
         Location locationToUpdate = locationMapper.toBusinessEntity(dto);
         locationToUpdate.setId(id);
@@ -57,6 +62,7 @@ public class LocationController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         locationService.delete(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
