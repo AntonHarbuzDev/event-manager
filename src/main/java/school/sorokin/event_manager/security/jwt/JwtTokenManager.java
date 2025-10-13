@@ -29,7 +29,7 @@ public class JwtTokenManager {
         return Jwts.parser()
                 .verifyWith(Keys.hmacShaKeyFor(jwtSecret.getBytes()))
                 .build()
-                .parseEncryptedClaims(jwtToken)
+                .parseSignedClaims(jwtToken)
                 .getPayload()
                 .getSubject();
     }

@@ -7,7 +7,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import school.sorokin.event_manager.model.entity.UserEntity;
 import school.sorokin.event_manager.repository.UserRepository;
-import school.sorokin.event_manager.service.UserService;
 
 @Component
 public class CustomUserDetailsService implements UserDetailsService {
