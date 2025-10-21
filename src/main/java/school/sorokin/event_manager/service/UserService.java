@@ -31,7 +31,7 @@ public class UserService {
         user.setRole(Role.USER);
         UserEntity userEntity = userRepository.save(userMapper.toEntity(user));
         User result = userMapper.toBusinessEntity(userEntity);
-        log.info("Create register success {}", result);
+        log.info("Create register success with login - {}", result.getLogin());
         return result;
     }
 
@@ -40,7 +40,7 @@ public class UserService {
         checkLoginExist(user);
         UserEntity userEntity = userRepository.save(userMapper.toEntity(user));
         User result = userMapper.toBusinessEntity(userEntity);
-        log.info("Create user success {}", result);
+        log.info("Create user success  with login - {}", result.getLogin());
         return result;
     }
 

@@ -20,6 +20,8 @@ import java.io.IOException;
 @Component
 public class JwtTokenFilter extends OncePerRequestFilter {
 
+    private static final int NUMBER_FOR_THE_SAMPLE_BEARER_FROM_LINE_JST = 7;
+
     private static final Logger log = LoggerFactory.getLogger(JwtTokenFilter.class);
 
     private final JwtTokenManager jwtTokenManager;
@@ -55,7 +57,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     private String getTokenFromRequest(HttpServletRequest request) {
         String authHerder = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (StringUtils.hasText(authHerder) && authHerder.startsWith("Bearer ")) {
-            return authHerder.substring(7);
+            return authHerder.substring(NUMBER_FOR_THE_SAMPLE_BEARER_FROM_LINE_JST);
         }
         return null;
     }

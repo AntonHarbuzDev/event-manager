@@ -16,8 +16,8 @@ public class SignUpRequest {
     @Size(min = 4, message = "Password must be at least 4 characters")
     private String password;
 
-    @Min(value = 0, message = "Age must be positive")
-    @Max(value = 200, message = "Age must be realistic")
+    @Min(value = 18, message = "The user must be of legal age")
+    @Max(value = 150, message = "Age must be realistic")
     private int age;
 
     public SignUpRequest(String login, String password, int age) {

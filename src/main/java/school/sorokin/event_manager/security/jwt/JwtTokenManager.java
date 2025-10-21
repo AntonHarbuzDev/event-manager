@@ -16,7 +16,7 @@ public class JwtTokenManager {
     @Value("${jwt.expiration}")
     private Long jwtExpiration;
 
-    public String generateToken(String login) {
+    public String generateToken(String login) { //better parameter user
         return Jwts.builder()
                 .subject(login)
                 .signWith(Keys.hmacShaKeyFor(jwtSecret.getBytes()))

@@ -20,7 +20,7 @@ public class UserDto {
     private String password;
 
     @Min(value = 0, message = "Age must be positive")
-    @Max(value = 200, message = "Age must be realistic")
+    @Max(value = 150, message = "Age must be realistic")
     private int age;
 
     private Role role;

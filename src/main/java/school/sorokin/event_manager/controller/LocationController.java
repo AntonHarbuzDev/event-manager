@@ -1,6 +1,8 @@
 package school.sorokin.event_manager.controller;
 
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import school.sorokin.event_manager.GlobalExceptionHandler;
 import school.sorokin.event_manager.model.Location;
 import school.sorokin.event_manager.model.dto.LocationDto;
 import school.sorokin.event_manager.model.mapper.LocationMapper;
@@ -23,6 +26,8 @@ import java.util.List;
 @RequestMapping("/locations")
 public class LocationController {
 
+    private static final Logger log = LoggerFactory.getLogger(LocationController.class);
+
     private final LocationService locationService;
     private final LocationMapper locationMapper;
 
@@ -33,28 +38,32 @@ public class LocationController {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
-    public ResponseEntity<LocationDto> create(@RequestBody @Valid LocationDto dto) {
+    public ResponseEntity<LocationDto> createLocation(@RequestBody @Valid LocationDto dto) {
+        log.info("Get request for location create: LocationDto = {}", dto);
         Location created = locationService.create(locationMapper.toBusinessEntity(dto));
         return ResponseEntity.status(HttpStatus.CREATED).body(locationMapper.toDto(created));
     }
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
-    public ResponseEntity<List<LocationDto>> getAll() {
+    public ResponseEntity<List<LocationDto>> getAllLocations() {
+        log.info("Get request for get all locations");
         List<LocationDto> result = locationService.getAll().stream().map(locationMapper::toDto).toList();
         return ResponseEntity.ok().body(result);
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
-    public ResponseEntity<LocationDto> getById(@PathVariable Long id) {
+    public ResponseEntity<LocationDto> getLocationById(@PathVariable Long id) {
+        log.info("Get request for get location id = {}", id);
         Location location = locationService.getById(id);
         return ResponseEntity.ok().body(locationMapper.toDto(location));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<LocationDto> update(@PathVariable Long id, @RequestBody @Valid LocationDto dto) {
+    public ResponseEntity<LocationDto> updateLocation(@PathVariable Long id, @RequestBody @Valid LocationDto dto) {
+        log.info("Get request for update location: id = {}, LocationDto = {}", id, dto);
         Location locationToUpdate = locationMapper.toBusinessEntity(dto);
         locationToUpdate.setId(id);
         Location updated = locationService.update(locationToUpdate);
@@ -63,8 +72,9 @@ public class LocationController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        locationService.delete(id);
+    public ResponseEntity<Void> deleteLocation(@PathVariable Long id) {
+        log.info("Get request for delete location id = {}",id);
+                locationService.delete(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
