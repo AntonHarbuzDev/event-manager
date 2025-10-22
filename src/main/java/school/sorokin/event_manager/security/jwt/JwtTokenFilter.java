@@ -8,14 +8,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import school.sorokin.event_manager.security.CustomUserDetailsService;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 
 @Component
 public class JwtTokenFilter extends OncePerRequestFilter {
@@ -25,11 +27,9 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(JwtTokenFilter.class);
 
     private final JwtTokenManager jwtTokenManager;
-    private final CustomUserDetailsService customUserDetailsService;
 
-    public JwtTokenFilter(JwtTokenManager jwtTokenManager, CustomUserDetailsService customUserDetailsService) {
+    public JwtTokenFilter(JwtTokenManager jwtTokenManager) {
         this.jwtTokenManager = jwtTokenManager;
-        this.customUserDetailsService = customUserDetailsService;
     }
 
     @Override
@@ -39,11 +39,16 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             String jwtToken = getTokenFromRequest(request);
             if (jwtToken != null) {
                 String login = jwtTokenManager.getLoginFromToken(jwtToken);
-                UserDetails user = customUserDetailsService.loadUserByUsername(login);
+                List<String> roles = jwtTokenManager.getRolesFromToken(jwtToken);
+                Collection<? extends GrantedAuthority> authorities =
+                        roles.stream()
+                                .map(SimpleGrantedAuthority::new)
+                                .toList();
+
                 UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                        user,
+                        login,
                         null,
-                        user.getAuthorities()
+                        authorities
                 );
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }

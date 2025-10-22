@@ -24,20 +24,20 @@ public class DataInitializer {
     @EventListener(ContextRefreshedEvent.class)
     public void initializeDefaultUser() {
         UserDto userDto = new UserDto(null, "user", "user", 20, Role.USER);
-        try {
-            userService.create(userDto);
-        } catch (EntityExistsException e) {
-            log.info("User with login user already exist.");
-        }
+        initialize(userDto);
     }
 
     @EventListener(ContextRefreshedEvent.class)
     public void initializeDefaultAdmin() {
         UserDto userDto = new UserDto(null, "admin", "admin", 20, Role.ADMIN);
+        initialize(userDto);
+    }
+
+    private void initialize(UserDto dto) {
         try {
-            userService.create(userDto);
+            userService.create(dto);
         } catch (EntityExistsException e) {
-            log.info("User with login admin already exist.");
+            log.info("User with login = {} already exist.", dto.getLogin());
         }
     }
 }

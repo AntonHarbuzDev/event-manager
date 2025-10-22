@@ -2,6 +2,8 @@ package school.sorokin.event_manager.security.jwt;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import school.sorokin.event_manager.model.dto.SingInRequest;
 
@@ -17,8 +19,9 @@ public class JwtAuthenticationService {
     }
 
     public String authenticateUser(SingInRequest singInRequest) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 singInRequest.getLogin(), singInRequest.getPassword()));
-        return jwtTokenManager.generateToken(singInRequest.getLogin());
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return jwtTokenManager.generateToken(userDetails);
     }
 }
