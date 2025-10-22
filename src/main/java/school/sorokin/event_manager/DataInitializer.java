@@ -35,7 +35,7 @@ public class DataInitializer {
 
     private void initialize(UserDto dto) {
         try {
-            userService.create(dto);
+            userService.createUser(dto);
         } catch (EntityExistsException e) {
             log.info("User with login = {} already exist.", dto.getLogin());
         }

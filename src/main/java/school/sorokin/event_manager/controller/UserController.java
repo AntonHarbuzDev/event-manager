@@ -44,7 +44,7 @@ public class UserController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<UserShowDto> getUserById(@PathVariable Long id) {
         log.info("Get request for get user by id: id = {}", id);
-        UserShowDto userShowDto = userService.getById(id);
+        UserShowDto userShowDto = userService.getUserById(id);
         return ResponseEntity.ok().body(userShowDto);
     }
 

@@ -35,7 +35,7 @@ public class LocationController {
     @PostMapping
     public ResponseEntity<LocationDto> createLocation(@RequestBody @Valid LocationDto dto) {
         log.info("Get request for location create: LocationDto = {}", dto);
-        LocationDto created = locationService.create(dto);
+        LocationDto created = locationService.createLocation(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
@@ -43,7 +43,7 @@ public class LocationController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ResponseEntity<List<LocationDto>> getAllLocations() {
         log.info("Get request for get all locations");
-        List<LocationDto> result = locationService.getAll();
+        List<LocationDto> result = locationService.getAllLocations();
         return ResponseEntity.ok().body(result);
     }
 
@@ -51,7 +51,7 @@ public class LocationController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ResponseEntity<LocationDto> getLocationById(@PathVariable Long id) {
         log.info("Get request for get location id = {}", id);
-        LocationDto location = locationService.getById(id);
+        LocationDto location = locationService.getLocationById(id);
         return ResponseEntity.ok().body(location);
     }
 
@@ -59,7 +59,7 @@ public class LocationController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<LocationDto> updateLocation(@PathVariable Long id, @RequestBody @Valid LocationDto dto) {
         log.info("Get request for update location: id = {}, LocationDto = {}", id, dto);
-        LocationDto updated = locationService.update(dto, id);
+        LocationDto updated = locationService.updateLocation(dto, id);
         return ResponseEntity.status(HttpStatus.OK).body(updated);
     }
 
@@ -67,7 +67,7 @@ public class LocationController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> deleteLocation(@PathVariable Long id) {
         log.info("Get request for delete location id = {}", id);
-        locationService.delete(id);
+        locationService.deleteLocation(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

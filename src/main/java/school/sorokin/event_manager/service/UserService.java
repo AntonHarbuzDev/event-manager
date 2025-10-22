@@ -40,7 +40,7 @@ public class UserService {
     }
 
     @Transactional
-    public void create(UserDto user) {
+    public void createUser(UserDto user) {
         User userCreated = toBusinessEntity(user);
         checkLoginExist(userCreated);
         UserEntity userEntity = userRepository.save(toEntity(userCreated));
@@ -48,7 +48,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserShowDto getById(Long id) {
+    public UserShowDto getUserById(Long id) {
         UserEntity userEntity = userRepository.findById(id).orElseThrow(() ->
                 new EntityNotFoundException("User with id = " + id + " no found."));
         return toShowDto(userEntity);

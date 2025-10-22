@@ -8,6 +8,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import school.sorokin.event_manager.model.Role;
 
 import java.util.Objects;
@@ -22,12 +24,15 @@ public class UserEntity {
     private Long id;
 
     @Column(unique = true, name = "login")
+    @NotBlank
     private String login;
 
     @Column(name = "password")
+    @NotBlank
     private String password;
 
     @Column(name = "age")
+    @Min(value = 18)
     private int age;
 
     @Enumerated(EnumType.STRING)

@@ -6,6 +6,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 
 import java.util.Objects;
 
@@ -19,12 +21,15 @@ public class LocationEntity {
     private Long id;
 
     @Column(name = "name")
+    @NotBlank
     private String name;
 
     @Column(name = "address")
+    @NotBlank
     private String address;
 
     @Column(name = "capacity")
+    @Min(1)
     private int capacity;
 
     @Column(name = "description")
