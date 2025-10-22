@@ -1,5 +1,6 @@
 package school.sorokin.event_manager;
 
+import jakarta.persistence.EntityExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -31,7 +32,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         log.debug("Handle method argument not valid exception {}", e.getMessage());
         String errorDetails = e.getBindingResult()
@@ -48,15 +49,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
-    @ExceptionHandler
-    public ResponseEntity<ErrorResponse> handleAllException(Exception e) {
-        log.error("Exception from server {}", e.getMessage());
+    @ExceptionHandler(EntityExistsException.class)
+    public ResponseEntity<ErrorResponse> handleEntityExistsException(EntityExistsException e) {
+        log.debug("Handle entity exist exception {}", e.getMessage());
+
         ErrorResponse errorResponse = new ErrorResponse(
-                "Внутренняя ошибка сервера",
+                "Некорректный запрос",
                 e.getMessage(),
                 LocalDateTime.now()
         );
-        return ResponseEntity.internalServerError().body(errorResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
     @ExceptionHandler(AuthorizationDeniedException.class)
@@ -79,5 +81,16 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponse> handleAllException(Exception e) {
+        log.error("Exception from server {}", e.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(
+                "Внутренняя ошибка сервера",
+                e.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.internalServerError().body(errorResponse);
     }
 }

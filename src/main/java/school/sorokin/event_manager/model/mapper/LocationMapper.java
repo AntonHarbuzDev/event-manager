@@ -48,13 +48,33 @@ public class LocationMapper {
         );
     }
 
-    public LocationEntity updatedFields(LocationEntity locationExisting, Location updated) {
+    public LocationEntity updatedFields(LocationEntity locationExisting, LocationDto updated) {
         return new LocationEntity(
                 locationExisting.getId(),
                 updated.getName(),
                 updated.getAddress(),
                 updated.getCapacity(),
                 updated.getDescription()
+        );
+    }
+
+    public LocationEntity toEntity(LocationDto locationDto) {
+        return new LocationEntity(
+                locationDto.getId(),
+                locationDto.getName(),
+                locationDto.getAddress(),
+                locationDto.getCapacity(),
+                locationDto.getDescription()
+        );
+    }
+
+    public LocationDto toDto(LocationEntity locationEntity) {
+        return new LocationDto(
+                locationEntity.getId(),
+                locationEntity.getName(),
+                locationEntity.getAddress(),
+                locationEntity.getCapacity(),
+                locationEntity.getDescription()
         );
     }
 }

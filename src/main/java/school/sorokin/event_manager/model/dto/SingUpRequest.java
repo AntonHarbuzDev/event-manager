@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 
 import java.util.Objects;
 
-public class SignUpRequest {
+public class SingUpRequest {
 
     @NotBlank(message = "Login must not be empty")
     private String login;
@@ -20,7 +20,7 @@ public class SignUpRequest {
     @Max(value = 150, message = "Age must be realistic")
     private int age;
 
-    public SignUpRequest(String login, String password, int age) {
+    public SingUpRequest(String login, String password, int age) {
         this.login = login;
         this.password = password;
         this.age = age;
@@ -53,7 +53,7 @@ public class SignUpRequest {
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        SignUpRequest that = (SignUpRequest) o;
+        SingUpRequest that = (SingUpRequest) o;
         return age == that.age && Objects.equals(login, that.login) && Objects.equals(password, that.password);
     }
 

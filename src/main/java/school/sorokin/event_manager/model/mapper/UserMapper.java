@@ -4,7 +4,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import school.sorokin.event_manager.model.Role;
 import school.sorokin.event_manager.model.User;
-import school.sorokin.event_manager.model.dto.SignUpRequest;
+import school.sorokin.event_manager.model.dto.SingUpRequest;
 import school.sorokin.event_manager.model.dto.UserDto;
 import school.sorokin.event_manager.model.dto.UserShowDto;
 import school.sorokin.event_manager.model.entity.UserEntity;
@@ -58,22 +58,22 @@ public class UserMapper {
         );
     }
 
-    public User toBusinessEntity(SignUpRequest signUpRequest) {
+    public User toBusinessEntity(SingUpRequest singUpRequest) {
         return new User(
                 null,
-                signUpRequest.getLogin(),
-                passwordEncoder.encode(signUpRequest.getPassword()),
-                signUpRequest.getAge(),
+                singUpRequest.getLogin(),
+                passwordEncoder.encode(singUpRequest.getPassword()),
+                singUpRequest.getAge(),
                 Role.USER
         );
     }
 
-    public UserShowDto toShowDto(User user) {
+    public UserShowDto toShowDto(UserEntity userEntity) {
         return new UserShowDto(
-                user.getId(),
-                user.getLogin(),
-                user.getAge(),
-                user.getRole()
+                userEntity.getId(),
+                userEntity.getLogin(),
+                userEntity.getAge(),
+                userEntity.getRole()
         );
     }
 }

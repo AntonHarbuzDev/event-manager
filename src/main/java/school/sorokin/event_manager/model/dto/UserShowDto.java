@@ -1,9 +1,5 @@
 package school.sorokin.event_manager.model.dto;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import school.sorokin.event_manager.model.Role;
 
 import java.util.Objects;
