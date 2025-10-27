@@ -6,6 +6,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 
 import java.util.Objects;
 
@@ -19,15 +21,18 @@ public class LocationEntity {
     private Long id;
 
     @Column(name = "name")
+    @NotBlank(message = "Name must not be empty")
     private String name;
 
     @Column(name = "address")
+    @NotBlank(message = "Address must not be empty")
     private String address;
 
     @Column(name = "capacity")
+    @Min(value = 1, message = "Capacity must be greater than 0")
     private int capacity;
 
-    @Column(name = "description")
+    @NotBlank(message = "Description must not be empty")
     private String description;
 
     public LocationEntity() {
