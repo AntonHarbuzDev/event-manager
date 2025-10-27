@@ -21,18 +21,18 @@ public class LocationEntity {
     private Long id;
 
     @Column(name = "name")
-    @NotBlank
+    @NotBlank(message = "Name must not be empty")
     private String name;
 
     @Column(name = "address")
-    @NotBlank
+    @NotBlank(message = "Address must not be empty")
     private String address;
 
     @Column(name = "capacity")
-    @Min(1)
+    @Min(value = 1, message = "Capacity must be greater than 0")
     private int capacity;
 
-    @Column(name = "description")
+    @NotBlank(message = "Description must not be empty")
     private String description;
 
     public LocationEntity() {

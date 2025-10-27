@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import school.sorokin.event_manager.model.Role;
@@ -24,15 +25,16 @@ public class UserEntity {
     private Long id;
 
     @Column(unique = true, name = "login")
-    @NotBlank
+    @NotBlank(message = "Login must not be empty")
     private String login;
 
     @Column(name = "password")
-    @NotBlank
+    @NotBlank(message = "Password must not be empty")
     private String password;
 
     @Column(name = "age")
-    @Min(value = 18)
+    @Min(value = 18, message = "Age must be of legal")
+    @Max(value = 150, message = "Age must be realistic")
     private int age;
 
     @Enumerated(EnumType.STRING)

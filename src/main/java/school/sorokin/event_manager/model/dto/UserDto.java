@@ -19,7 +19,7 @@ public class UserDto {
     @Size(min = 4, message = "Password must be at least 4 characters")
     private String password;
 
-    @Min(value = 0, message = "Age must be positive")
+    @Min(value = 18, message = "Age must be of legal")
     @Max(value = 150, message = "Age must be realistic")
     private int age;
 
