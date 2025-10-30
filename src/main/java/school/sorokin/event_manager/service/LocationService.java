@@ -88,7 +88,7 @@ public class LocationService {
         );
     }
 
-    private Location toBusinessEntity(LocationEntity entity) {
+    public Location toBusinessEntity(LocationEntity entity) {
         return new Location(
                 entity.getId(),
                 entity.getName(),

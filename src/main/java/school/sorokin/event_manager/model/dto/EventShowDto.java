@@ -1,6 +1,5 @@
 package school.sorokin.event_manager.model.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,7 +7,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import school.sorokin.event_manager.model.Status;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Data
 @AllArgsConstructor
@@ -22,7 +21,7 @@ public class EventShowDto {
     private Long locationId;
     private int occupiedPlaces;
     @DateTimeFormat(pattern = "${pattern.date-time}")
-    private LocalDateTime date;
+    private OffsetDateTime date;
     private int duration;
     private int cost;
     private int maxPlaces;

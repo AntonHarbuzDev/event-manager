@@ -4,7 +4,6 @@ import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Past;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +12,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import school.sorokin.event_manager.model.EventRegistration;
 import school.sorokin.event_manager.model.Status;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Set;
 
 @Data
@@ -35,7 +34,7 @@ public class EventDto {
     @NotNull(message = "Date must not be empty")
     @Future(message = "Date must be in the future")
     @DateTimeFormat(pattern = "${pattern.date-time}")
-    private LocalDateTime date;
+    private OffsetDateTime date;
 
     @Min(value = 0, message = "Cost must be positive")
     private int cost;

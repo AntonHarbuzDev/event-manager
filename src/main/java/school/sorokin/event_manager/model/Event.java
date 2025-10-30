@@ -4,8 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import school.sorokin.event_manager.model.entity.EventRegistrationEntity;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Set;
 
 @Data
@@ -17,8 +18,8 @@ public class Event {
     private Long id;
     private String name;
     private User owner;
-    private Set<EventRegistration> eventRegistrations;
-    private LocalDateTime date;
+    private Set<EventRegistrationEntity> eventRegistrations;
+    private OffsetDateTime date;
     private int cost;
     private int duration;
     private Location location;

@@ -20,6 +20,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import school.sorokin.event_manager.model.Status;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -48,7 +49,7 @@ public class EventEntity {
 
     @Column(name = "date")
     @DateTimeFormat(pattern = "${pattern.date-time}")
-    private LocalDateTime date;
+    private OffsetDateTime date;
 
     @Column(name = "cost")
     private int cost;
