@@ -1,6 +1,5 @@
 package school.sorokin.event_manager.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,11 +14,12 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.springframework.format.annotation.DateTimeFormat;
 import school.sorokin.event_manager.model.Status;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -45,6 +45,8 @@ public class EventEntity {
     private UserEntity owner;
 
     @OneToMany(mappedBy = "eventEntity")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Set<EventRegistrationEntity> eventRegistrationEntities = new HashSet<>();
 
     @Column(name = "date")

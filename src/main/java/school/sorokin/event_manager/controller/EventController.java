@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,11 +48,18 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
+    @GetMapping("/my")
+    @PreAuthorize("hasAuthority('USER')")
+    public ResponseEntity<List<EventShowDto>> getEventsMy() {
+        List<EventShowDto> result = eventService.getEventsCreatedByLoggedUser();
+        return ResponseEntity.ok().body(result);
+    }
+
     @PostMapping("/search")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ResponseEntity<List<EventShowDto>> getAllForFilter(@RequestBody EventFilter filter) {
-        List<EventShowDto> result = eventService.getByFilter(filter);
-        return ResponseEntity.ok().body(result);
+        List<EventShowDto> result = eventService.getEventsByFilter(filter);
+        return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     @PutMapping("/{eventId}")

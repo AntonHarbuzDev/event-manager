@@ -9,7 +9,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import school.sorokin.event_manager.model.Event;
-import school.sorokin.event_manager.model.EventRegistration;
 import school.sorokin.event_manager.model.Location;
 import school.sorokin.event_manager.model.Status;
 import school.sorokin.event_manager.model.User;
@@ -58,8 +57,20 @@ public class EventService {
         return result;
     }
 
+    @Transactional(readOnly = true)
+    public EventEntity getEventEntityById(Long id) {
+        return loadEventEntityById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<EventShowDto> getEventsCreatedByLoggedUser() {
+        User user = getUserFromAuthentication();
+        List<EventEntity> events = eventRepository.findAllByOwner(userService.toEntity(user));
+        return events.stream().map(this::toShowDto).toList();
+    }
+
     @Transactional
-    public List<EventShowDto> getByFilter(EventFilter eventFilter) {
+    public List<EventShowDto> getEventsByFilter(EventFilter eventFilter) {
         Specification<EventEntity> spec = eventSpecifications.withFilter(eventFilter);
         List<EventEntity> eventEntities = eventRepository.findAll(spec);
         if (eventEntities.isEmpty()) {
@@ -155,7 +166,7 @@ public class EventService {
                 .build();
     }
 
-    private EventShowDto toShowDto(EventEntity eventEntity) {
+    public EventShowDto toShowDto(EventEntity eventEntity) {
         return EventShowDto.builder()
                 .id(eventEntity.getId())
                 .ownerId(eventEntity.getOwner().getId())

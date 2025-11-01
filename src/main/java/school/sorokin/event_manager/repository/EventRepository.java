@@ -4,7 +4,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 import school.sorokin.event_manager.model.entity.EventEntity;
+import school.sorokin.event_manager.model.entity.UserEntity;
+
+import java.util.List;
 
 @Repository
 public interface EventRepository extends JpaRepository<EventEntity, Long>, JpaSpecificationExecutor<EventEntity> {
+
+    public List<EventEntity> findAllByOwner(UserEntity userEntity);
 }

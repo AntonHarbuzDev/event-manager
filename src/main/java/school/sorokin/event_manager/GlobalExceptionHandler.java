@@ -49,6 +49,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.debug("Handle with incorrect data {}", e.getMessage());
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                "Некорректный запрос",
+                e.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
     @ExceptionHandler(EntityExistsException.class)
     public ResponseEntity<ErrorResponse> handleEntityExistsException(EntityExistsException e) {
         log.debug("Handle entity exist exception {}", e.getMessage());
