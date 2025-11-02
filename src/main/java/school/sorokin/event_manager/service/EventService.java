@@ -20,6 +20,7 @@ import school.sorokin.event_manager.model.filter.EventFilter;
 import school.sorokin.event_manager.repository.EventRepository;
 import school.sorokin.event_manager.service.specification.EventSpecifications;
 
+import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -77,6 +78,25 @@ public class EventService {
             throw new NoSuchElementException("The entity was not found with the given filter parameters.");
         }
         return eventEntities.stream().map(this::toShowDto).toList();
+    }
+
+    @Transactional
+    public List<EventEntity> getEventsForChangeStatus(Status status, OffsetDateTime offsetDateTime) {
+        log.info("new date = {}", offsetDateTime);
+        List<EventEntity> eventEntities = eventRepository.findAllByStatusAndDateBefore(status, offsetDateTime);
+        if (eventEntities.isEmpty()) {
+            log.info("There are no events to change the status...");
+        } else {
+            eventEntities.forEach(e -> log.info("Get event prepare to change status : {}", e));
+        }
+        return eventEntities;
+    }
+
+    @Transactional
+    public void updateEventStatus(EventEntity eventEntity, Status status) {
+        eventEntity.setStatus(status);
+        eventRepository.save(eventEntity);
+        log.info("The event = {} status has been switched to {}", eventEntity.getName(), status);
     }
 
     @Transactional
