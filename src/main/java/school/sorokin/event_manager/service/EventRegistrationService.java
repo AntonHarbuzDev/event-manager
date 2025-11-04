@@ -7,12 +7,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import school.sorokin.event_manager.model.Status;
-import school.sorokin.event_manager.model.User;
 import school.sorokin.event_manager.model.dto.EventShowDto;
 import school.sorokin.event_manager.model.entity.EventEntity;
 import school.sorokin.event_manager.model.entity.EventRegistrationEntity;
 import school.sorokin.event_manager.model.entity.UserEntity;
 import school.sorokin.event_manager.repository.EventRegistrationRepository;
+import school.sorokin.event_manager.repository.UserRepository;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -24,7 +24,7 @@ public class EventRegistrationService {
     private static final Logger log = LoggerFactory.getLogger(EventRegistrationService.class);
 
     private final EventRegistrationRepository eventRegistrationRepository;
-    private final UserService userService;
+    private final UserRepository userRepository;
     private final EventService eventService;
 
     @Transactional
@@ -34,8 +34,7 @@ public class EventRegistrationService {
         checkStatusNoFinish(eventEntity);
         checkCapacity(eventEntity);
         checkUserAlreadyRegistered(eventEntity);
-        User user = getUserFromAuthentication();
-        UserEntity userEntity = userService.toEntity(user);
+        UserEntity userEntity = getUserFromAuthentication();
         checkOwnerEvent(eventEntity, userEntity);
 
         EventRegistrationEntity eventRegistrationEntity = new EventRegistrationEntity(null, userEntity, eventEntity);
@@ -55,8 +54,7 @@ public class EventRegistrationService {
         checkStatusNoFinish(eventEntity);
         checkStatusNoStarted(eventEntity);
         checkUserNoRegistered(eventEntity);
-        User user = getUserFromAuthentication();
-        UserEntity userEntity = userService.toEntity(user);
+        UserEntity userEntity = getUserFromAuthentication();
         EventRegistrationEntity eventRegistrationEntity = eventRegistrationRepository.findByUserEntityAndEventEntity(userEntity, eventEntity)
                 .orElseThrow(() -> new NoSuchElementException(String.format("User = %s is not registered for the event = %s.", userEntity.getLogin(), eventEntity.getName())));
         eventRegistrationRepository.delete(eventRegistrationEntity);
@@ -110,14 +108,14 @@ public class EventRegistrationService {
     }
 
     private List<EventShowDto> loadRegistrationEventByLoggedUser() {
-        User user = getUserFromAuthentication();
         List<EventRegistrationEntity> eventRegistrationEntities =
-                eventRegistrationRepository.findByUserEntity(userService.toEntity(user));
+                eventRegistrationRepository.findByUserEntity(getUserFromAuthentication());
         return eventRegistrationEntities.stream()
                 .map(EventRegistrationEntity::getEventEntity).map(eventService::toShowDto).toList();
     }
 
-    private User getUserFromAuthentication() {
-        return userService.getUserByLogin(SecurityContextHolder.getContext().getAuthentication().getName());
+    private UserEntity getUserFromAuthentication() {
+        return userRepository.findByLogin(SecurityContextHolder.getContext().getAuthentication().getName())
+                .orElseThrow();
     }
 }

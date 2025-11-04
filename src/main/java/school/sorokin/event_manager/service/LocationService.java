@@ -41,13 +41,8 @@ public class LocationService {
     }
 
     @Transactional(readOnly = true)
-    public LocationDto getLocationDtoById(Long id) {
+    public LocationDto getLocationById(Long id) {
         return toDto(loadById(id));
-    }
-
-    @Transactional(readOnly = true)
-    public Location getLocationById(Long id) {
-        return toBusinessEntity(loadById(id));
     }
 
     @Transactional
@@ -88,16 +83,6 @@ public class LocationService {
         );
     }
 
-    public Location toBusinessEntity(LocationEntity entity) {
-        return new Location(
-                entity.getId(),
-                entity.getName(),
-                entity.getAddress(),
-                entity.getCapacity(),
-                entity.getDescription()
-        );
-    }
-
     private LocationEntity updatedFields(LocationEntity locationExisting, LocationDto updated) {
         return new LocationEntity(
                 locationExisting.getId(),
@@ -118,16 +103,6 @@ public class LocationService {
         );
     }
 
-    public LocationEntity toEntity(Location location) {
-        return new LocationEntity(
-                location.getId(),
-                location.getName(),
-                location.getAddress(),
-                location.getCapacity(),
-                location.getDescription()
-        );
-    }
-
     private LocationDto toDto(LocationEntity locationEntity) {
         return new LocationDto(
                 locationEntity.getId(),
@@ -138,4 +113,3 @@ public class LocationService {
         );
     }
 }
-

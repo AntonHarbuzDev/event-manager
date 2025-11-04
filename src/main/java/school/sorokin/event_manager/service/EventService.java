@@ -8,16 +8,16 @@ import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import school.sorokin.event_manager.model.Event;
-import school.sorokin.event_manager.model.Location;
 import school.sorokin.event_manager.model.Status;
-import school.sorokin.event_manager.model.User;
 import school.sorokin.event_manager.model.dto.EventCreateDto;
 import school.sorokin.event_manager.model.dto.EventShowDto;
 import school.sorokin.event_manager.model.entity.EventEntity;
 import school.sorokin.event_manager.model.entity.LocationEntity;
+import school.sorokin.event_manager.model.entity.UserEntity;
 import school.sorokin.event_manager.model.filter.EventFilter;
 import school.sorokin.event_manager.repository.EventRepository;
+import school.sorokin.event_manager.repository.LocationRepository;
+import school.sorokin.event_manager.repository.UserRepository;
 import school.sorokin.event_manager.service.specification.EventSpecifications;
 
 import java.time.OffsetDateTime;
@@ -32,20 +32,19 @@ public class EventService {
     private static final Logger log = LoggerFactory.getLogger(EventService.class);
 
     private final EventRepository eventRepository;
-    private final LocationService locationService;
-    private final UserService userService;
+    private final LocationRepository locationRepository;
+    private final UserRepository userRepository;
     private final EventSpecifications eventSpecifications;
 
     @Transactional
     public EventShowDto createEvent(EventCreateDto dto, String username) {
-        Event event = toBusinessEntity(dto);
+        EventEntity event = toEntity(dto);
         checkCapacityLocation(event);
-        User user = userService.getUserByLogin(username);
-        event.setOwner(user);
+        UserEntity ownerEntity = userRepository.findByLogin(username).orElseThrow();
+        event.setOwner(ownerEntity);
         event.setStatus(Status.WAIT_START);
-        event.setEventRegistrations(new HashSet<>());
-        EventEntity eventEntity = toEntity(event);
-        EventEntity result = eventRepository.save(eventEntity);
+        event.setEventRegistrationEntities(new HashSet<>());
+        EventEntity result = eventRepository.save(event);
         log.info("Create event success {}", result);
         return toShowDto(result);
     }
@@ -65,8 +64,8 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public List<EventShowDto> getEventsCreatedByLoggedUser() {
-        User user = getUserFromAuthentication();
-        List<EventEntity> events = eventRepository.findAllByOwner(userService.toEntity(user));
+        UserEntity userEntity = getUserFromAuthentication();
+        List<EventEntity> events = eventRepository.findAllByOwner(userEntity);
         return events.stream().map(this::toShowDto).toList();
     }
 
@@ -101,12 +100,13 @@ public class EventService {
 
     @Transactional
     public EventShowDto updateEvent(EventCreateDto dto, Long id) {
-        Event event = toBusinessEntity(dto);
+        EventEntity event = toEntity(dto);
         checkCapacityLocation(event);
         EventEntity loadedEventEntity = loadEventEntityById(id);
-        User userLogin = getUserFromAuthentication();
-        Event eventLoaded = toBusinessEntity(loadedEventEntity);
-        checkOwer(eventLoaded, userLogin);
+        UserEntity userLogin = getUserFromAuthentication();
+        checkAlreadyRegistered(loadedEventEntity, dto);
+        checkStatusWait(loadedEventEntity);
+        checkOwer(loadedEventEntity, userLogin);
         EventEntity updated = updatedFields(loadedEventEntity, event);
         EventEntity result = eventRepository.save(updated);
         log.info("Update event success {}", result);
@@ -116,23 +116,36 @@ public class EventService {
     @Transactional
     public void cancelEvent(Long id) {
         EventEntity loaded = loadEventEntityById(id);
-        checkOwer(toBusinessEntity(loaded), getUserFromAuthentication());
+        checkOwer(loaded, getUserFromAuthentication());
         loaded.setStatus(Status.CANCELLED);
         log.info("Cancel event {} success", loaded);
     }
 
-    private void checkCapacityLocation(Event event) {
-        if (event.getLocation().getCapacity() < event.getMaxPlaces()) {
+    private void checkCapacityLocation(EventEntity event) {
+        if (event.getLocationEntity().getCapacity() < event.getMaxPlaces()) {
             throw new IllegalArgumentException(String.format("The location = %s cannot accommodate %d people.",
-                    event.getLocation().getName(), event.getDuration()));
+                    event.getLocationEntity().getName(), event.getDuration()));
         }
     }
 
-    private void checkOwer(Event event, User userLogin) {
-        if (!event.getOwner().equals(userLogin)) {
+    private void checkOwer(EventEntity event, UserEntity userLogin) {
+        if (!event.getOwner().getId().equals(userLogin.getId())) {
             throw new AuthorizationDeniedException(String.format(
                     "User login = %s no owner from event = %s in owner = %s",
                     userLogin, event.getName(), event.getOwner()));
+        }
+    }
+
+    private void checkAlreadyRegistered(EventEntity eventLoaded, EventCreateDto dto) {
+        int registeredAlreadyNumber = eventLoaded.getEventRegistrationEntities().size();
+        if (registeredAlreadyNumber > dto.getMaxPlaces()) {
+            throw new IllegalArgumentException("The number of people already registered = " + registeredAlreadyNumber);
+        }
+    }
+
+    private void checkStatusWait(EventEntity eventEntity) {
+        if (!eventEntity.getStatus().equals(Status.WAIT_START)) {
+            throw new IllegalArgumentException(String.format("Status has been %s", Status.WAIT_START));
         }
     }
 
@@ -141,48 +154,22 @@ public class EventService {
                 .orElseThrow(() -> new NoSuchElementException("Event with id = " + id + " no found."));
     }
 
-    private User getUserFromAuthentication() {
-        return userService.getUserByLogin(SecurityContextHolder.getContext().getAuthentication().getName());
+    private UserEntity getUserFromAuthentication() {
+        return userRepository.findByLogin(SecurityContextHolder.getContext().getAuthentication().getName())
+                .orElseThrow(() -> new NoSuchElementException("on user with name "));
     }
 
-    private EventEntity toEntity(Event event) {
+    private EventEntity toEntity(EventCreateDto dto) {
+        LocationEntity locationEntity =
+                locationRepository.findById(dto.getLocationId())
+                        .orElseThrow(() -> new NoSuchElementException("on location with id = " + dto.getLocationId())); // думаю плохо брать из репозитория
         return EventEntity.builder()
-                .name(event.getName())
-                .owner(userService.toEntity(event.getOwner()))
-                .date(event.getDate())
-                .cost(event.getCost())
-                .duration(event.getDuration())
-                .locationEntity(locationService.toEntity(event.getLocation()))
-                .maxPlaces(event.getMaxPlaces())
-                .status(event.getStatus())
-                .build();
-    }
-
-    private Event toBusinessEntity(EventCreateDto dto) {
-        Location location = locationService.getLocationById(dto.getLocationId());
-        return Event.builder()
                 .name(dto.getName())
                 .date(dto.getDate())
                 .cost(dto.getCost())
                 .duration(dto.getDuration())
-                .location(location)
+                .locationEntity(locationEntity)
                 .maxPlaces(dto.getMaxPlaces())
-                .build();
-    }
-
-    public Event toBusinessEntity(EventEntity entity) {
-        Location location = locationService.toBusinessEntity(entity.getLocationEntity());
-        User owner = userService.toBusinessEntity(entity.getOwner());
-        return Event.builder()
-                .id(entity.getId())
-                .name(entity.getName())
-                .owner(owner)
-                .eventRegistrations(entity.getEventRegistrationEntities())
-                .date(entity.getDate())
-                .cost(entity.getCost())
-                .duration(entity.getDuration())
-                .location(location)
-                .maxPlaces(entity.getMaxPlaces())
                 .build();
     }
 
@@ -202,14 +189,13 @@ public class EventService {
                 .build();
     }
 
-    private EventEntity updatedFields(EventEntity entityExisting, Event updated) {
-        LocationEntity locationEntity = locationService.toEntity(updated.getLocation());
+    private EventEntity updatedFields(EventEntity entityExisting, EventEntity updated) {
         entityExisting.setName(updated.getName());
         entityExisting.setDate(updated.getDate());
         entityExisting.setDuration(updated.getDuration());
         entityExisting.setCost(updated.getCost());
         entityExisting.setMaxPlaces(updated.getMaxPlaces());
-        entityExisting.setLocationEntity(locationEntity);
+        entityExisting.setLocationEntity(updated.getLocationEntity());
         return entityExisting;
     }
 }

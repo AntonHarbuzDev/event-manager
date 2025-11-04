@@ -51,7 +51,7 @@ public class LocationController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public ResponseEntity<LocationDto> getLocationById(@PathVariable Long id) {
         log.info("Get request for get location id = {}", id);
-        LocationDto location = locationService.getLocationDtoById(id);
+        LocationDto location = locationService.getLocationById(id);
         return ResponseEntity.ok().body(location);
     }
 
