@@ -11,12 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 import school.sorokin.event_manager.model.Status;
 import school.sorokin.event_manager.model.dto.EventCreateDto;
 import school.sorokin.event_manager.model.dto.EventShowDto;
+import school.sorokin.event_manager.model.dto.LocationDto;
 import school.sorokin.event_manager.model.entity.EventEntity;
 import school.sorokin.event_manager.model.entity.LocationEntity;
 import school.sorokin.event_manager.model.entity.UserEntity;
 import school.sorokin.event_manager.model.filter.EventFilter;
 import school.sorokin.event_manager.repository.EventRepository;
-import school.sorokin.event_manager.repository.LocationRepository;
 import school.sorokin.event_manager.repository.UserRepository;
 import school.sorokin.event_manager.service.specification.EventSpecifications;
 
@@ -32,7 +32,7 @@ public class EventService {
     private static final Logger log = LoggerFactory.getLogger(EventService.class);
 
     private final EventRepository eventRepository;
-    private final LocationRepository locationRepository;
+    private final LocationService locationService;
     private final UserRepository userRepository;
     private final EventSpecifications eventSpecifications;
 
@@ -160,9 +160,10 @@ public class EventService {
     }
 
     private EventEntity toEntity(EventCreateDto dto) {
-        LocationEntity locationEntity =
-                locationRepository.findById(dto.getLocationId())
-                        .orElseThrow(() -> new NoSuchElementException("on location with id = " + dto.getLocationId())); // думаю плохо брать из репозитория
+        LocationDto locationDto = locationService.getLocationById(dto.getLocationId());
+        LocationEntity locationEntity = toEntity(locationDto);
+//                locationRepository.findById(dto.getLocationId())
+//                        .orElseThrow(() -> new NoSuchElementException("on location with id = " + dto.getLocationId()));
         return EventEntity.builder()
                 .name(dto.getName())
                 .date(dto.getDate())
@@ -197,5 +198,15 @@ public class EventService {
         entityExisting.setMaxPlaces(updated.getMaxPlaces());
         entityExisting.setLocationEntity(updated.getLocationEntity());
         return entityExisting;
+    }
+
+    private LocationEntity toEntity(LocationDto locationDto) {
+        return new LocationEntity(
+                locationDto.getId(),
+                locationDto.getName(),
+                locationDto.getAddress(),
+                locationDto.getCapacity(),
+                locationDto.getDescription()
+        );
     }
 }
