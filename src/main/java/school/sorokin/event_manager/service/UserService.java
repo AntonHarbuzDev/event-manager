@@ -54,6 +54,12 @@ public class UserService {
         return toShowDto(userEntity);
     }
 
+    @Transactional(readOnly = true)
+    public UserEntity getUserEntityByLogin(String login) {
+        return userRepository.findByLogin(login).orElseThrow(() ->
+                new EntityNotFoundException("User with login = " + login + " no found."));
+    }
+
     private void checkLoginExist(User user) {
         if (userRepository.findByLogin(user.getLogin()).isPresent()) {
             throw new EntityExistsException("User with login = " + user.getLogin() + " exist.");
