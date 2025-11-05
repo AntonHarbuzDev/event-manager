@@ -17,7 +17,6 @@ import school.sorokin.event_manager.model.entity.LocationEntity;
 import school.sorokin.event_manager.model.entity.UserEntity;
 import school.sorokin.event_manager.model.filter.EventFilter;
 import school.sorokin.event_manager.repository.EventRepository;
-import school.sorokin.event_manager.repository.UserRepository;
 import school.sorokin.event_manager.service.specification.EventSpecifications;
 
 import java.time.OffsetDateTime;
@@ -33,14 +32,14 @@ public class EventService {
 
     private final EventRepository eventRepository;
     private final LocationService locationService;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final EventSpecifications eventSpecifications;
 
     @Transactional
-    public EventShowDto createEvent(EventCreateDto dto, String username) {
+    public EventShowDto createEvent(EventCreateDto dto) {
         EventEntity event = toEntity(dto);
         checkCapacityLocation(event);
-        UserEntity ownerEntity = userRepository.findByLogin(username).orElseThrow();
+        UserEntity ownerEntity = getUserFromAuthentication();
         event.setOwner(ownerEntity);
         event.setStatus(Status.WAIT_START);
         event.setEventRegistrationEntities(new HashSet<>());
@@ -155,15 +154,12 @@ public class EventService {
     }
 
     private UserEntity getUserFromAuthentication() {
-        return userRepository.findByLogin(SecurityContextHolder.getContext().getAuthentication().getName())
-                .orElseThrow(() -> new NoSuchElementException("on user with name "));
+        return userService.getUserEntityByLogin(SecurityContextHolder.getContext().getAuthentication().getName());
     }
 
     private EventEntity toEntity(EventCreateDto dto) {
         LocationDto locationDto = locationService.getLocationById(dto.getLocationId());
         LocationEntity locationEntity = toEntity(locationDto);
-//                locationRepository.findById(dto.getLocationId())
-//                        .orElseThrow(() -> new NoSuchElementException("on location with id = " + dto.getLocationId()));
         return EventEntity.builder()
                 .name(dto.getName())
                 .date(dto.getDate())

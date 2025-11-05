@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,8 +35,7 @@ public class EventController {
     @PreAuthorize("hasAuthority('USER')")
     public ResponseEntity<EventShowDto> createEvent(@RequestBody @Valid EventCreateDto dto) {
         log.info("Get request for event create: EventDto = {}", dto);
-        String username = getUsernameFromAuthentication();
-        EventShowDto result = eventService.createEvent(dto, username);
+        EventShowDto result = eventService.createEvent(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
@@ -76,10 +74,6 @@ public class EventController {
     public ResponseEntity<Void> cancelEvent(@PathVariable Long eventId) {
         eventService.cancelEvent(eventId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-
-    private String getUsernameFromAuthentication() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 }
 

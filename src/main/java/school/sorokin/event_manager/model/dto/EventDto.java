@@ -9,8 +9,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import school.sorokin.event_manager.model.EventRegistration;
 import school.sorokin.event_manager.model.Status;
+import school.sorokin.event_manager.model.entity.EventRegistrationEntity;
 
 import java.time.OffsetDateTime;
 import java.util.Set;
@@ -29,7 +29,7 @@ public class EventDto {
     @NotNull(message = "Owner id must be assigned")
     private Long ownerId;
 
-    private Set<EventRegistration> eventRegistrations;
+    private Set<EventRegistrationEntity> eventRegistrationsEntities;
 
     @NotNull(message = "Date must not be empty")
     @Future(message = "Date must be in the future")

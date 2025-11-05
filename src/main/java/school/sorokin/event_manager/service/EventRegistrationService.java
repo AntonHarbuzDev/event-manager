@@ -12,7 +12,6 @@ import school.sorokin.event_manager.model.entity.EventEntity;
 import school.sorokin.event_manager.model.entity.EventRegistrationEntity;
 import school.sorokin.event_manager.model.entity.UserEntity;
 import school.sorokin.event_manager.repository.EventRegistrationRepository;
-import school.sorokin.event_manager.repository.UserRepository;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -24,7 +23,7 @@ public class EventRegistrationService {
     private static final Logger log = LoggerFactory.getLogger(EventRegistrationService.class);
 
     private final EventRegistrationRepository eventRegistrationRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final EventService eventService;
 
     @Transactional
@@ -115,7 +114,6 @@ public class EventRegistrationService {
     }
 
     private UserEntity getUserFromAuthentication() {
-        return userRepository.findByLogin(SecurityContextHolder.getContext().getAuthentication().getName())
-                .orElseThrow();
+        return userService.getUserEntityByLogin(SecurityContextHolder.getContext().getAuthentication().getName());
     }
 }
