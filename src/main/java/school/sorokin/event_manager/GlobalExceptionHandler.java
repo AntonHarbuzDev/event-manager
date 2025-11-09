@@ -11,6 +11,7 @@ import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import school.sorokin.event_manager.exception.EventBusinessException;
 
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
@@ -44,6 +45,30 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(
                 "Некорректный запрос",
                 errorDetails,
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.debug("Handle with incorrect data {}", e.getMessage());
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                "Некорректный запрос",
+                e.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(EventBusinessException.class)
+    public ResponseEntity<ErrorResponse> handleEventBusinessException(EventBusinessException e) {
+        log.debug("Handle with incorrect data {}", e.getMessage());
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                "Некорректный запрос",
+                e.getMessage(),
                 LocalDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);

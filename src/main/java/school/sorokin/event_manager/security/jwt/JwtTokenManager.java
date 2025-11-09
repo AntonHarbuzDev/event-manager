@@ -16,7 +16,6 @@ import java.util.List;
 public class JwtTokenManager {
 
     private final SecretKey secretKey;
-
     private final Long jwtExpiration;
 
     public JwtTokenManager(@Value("${jwt.secret}") String jwtSecret,
