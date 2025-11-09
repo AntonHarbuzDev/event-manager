@@ -6,6 +6,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import school.sorokin.event_manager.exception.EventCancelledException;
+import school.sorokin.event_manager.exception.EventCapacityExceededException;
+import school.sorokin.event_manager.exception.EventFinishedException;
+import school.sorokin.event_manager.exception.EventRegisteredException;
+import school.sorokin.event_manager.exception.EventStartedException;
+import school.sorokin.event_manager.exception.OwnerRegistrationException;
 import school.sorokin.event_manager.model.Status;
 import school.sorokin.event_manager.model.dto.EventShowDto;
 import school.sorokin.event_manager.model.entity.EventEntity;
@@ -29,8 +35,8 @@ public class EventRegistrationService {
     @Transactional
     public void registrationEvent(Long id) {
         EventEntity eventEntity = eventService.getEventEntityById(id);
-        checkStatusNoCancelled(eventEntity);
-        checkStatusNoFinish(eventEntity);
+        checkStatusNotCancelled(eventEntity);
+        checkStatusNotFinish(eventEntity);
         checkCapacity(eventEntity);
         checkUserAlreadyRegistered(eventEntity);
         UserEntity userEntity = getUserFromAuthentication();
@@ -50,9 +56,10 @@ public class EventRegistrationService {
     @Transactional
     public void cancelRegistration(Long id) {
         EventEntity eventEntity = eventService.getEventEntityById(id);
-        checkStatusNoFinish(eventEntity);
-        checkStatusNoStarted(eventEntity);
-        checkUserNoRegistered(eventEntity);
+        checkStatusNotFinish(eventEntity);
+        checkStatusNotStarted(eventEntity);
+        checkStatusNotCancelled(eventEntity);
+        checkUserNotRegistered(eventEntity);
         UserEntity userEntity = getUserFromAuthentication();
         EventRegistrationEntity eventRegistrationEntity = eventRegistrationRepository.findByUserEntityAndEventEntity(userEntity, eventEntity)
                 .orElseThrow(() -> new NoSuchElementException(String.format("User = %s is not registered for the event = %s.", userEntity.getLogin(), eventEntity.getName())));
@@ -60,34 +67,34 @@ public class EventRegistrationService {
         log.info("User = {} has been removed from the event = {}", userEntity.getLogin(), eventEntity.getName());
     }
 
-    private void checkStatusNoCancelled(EventEntity eventEntity) {
+    private void checkStatusNotCancelled(EventEntity eventEntity) {
         if (eventEntity.getStatus().equals(Status.CANCELLED)) {
-            throw new IllegalArgumentException(String.format("The event = %s is cancelled", eventEntity.getName()));
+            throw new EventCancelledException(String.format("The event = %s is cancelled", eventEntity.getName()));
         }
     }
 
-    private void checkStatusNoFinish(EventEntity eventEntity) {
+    private void checkStatusNotFinish(EventEntity eventEntity) {
         if (eventEntity.getStatus().equals(Status.FINISHED)) {
-            throw new IllegalArgumentException(String.format("The event = %s is already over", eventEntity.getName()));
+            throw new EventFinishedException(String.format("The event = %s is already over", eventEntity.getName()));
         }
     }
 
-    private void checkStatusNoStarted(EventEntity eventEntity) {
+    private void checkStatusNotStarted(EventEntity eventEntity) {
         if (eventEntity.getStatus().equals(Status.STARTED)) {
-            throw new IllegalArgumentException(String.format("The event = %s is already begin", eventEntity.getName()));
+            throw new EventStartedException(String.format("The event = %s is already begin", eventEntity.getName()));
         }
     }
 
     private void checkUserAlreadyRegistered(EventEntity eventEntity) {
         if (loadRegistrationEventByLoggedUser().stream().anyMatch(e -> e.getId().equals(eventEntity.getId()))) {
-            throw new IllegalArgumentException(String.format("The user already register from event = %s",
+            throw new EventRegisteredException(String.format("The user already register from event = %s",
                     eventEntity.getName()));
         }
     }
 
-    private void checkUserNoRegistered(EventEntity eventEntity) {
+    private void checkUserNotRegistered(EventEntity eventEntity) {
         if (loadRegistrationEventByLoggedUser().stream().noneMatch(e -> e.getId().equals(eventEntity.getId()))) {
-            throw new IllegalArgumentException(String.format("The user no register from event = %s",
+            throw new EventRegisteredException(String.format("The user no register from event = %s",
                     eventEntity.getName()));
         }
     }
@@ -95,13 +102,13 @@ public class EventRegistrationService {
     private void checkCapacity(EventEntity eventEntity) {
         Long count = eventRegistrationRepository.countByEventEntity(eventEntity);
         if (eventEntity.getMaxPlaces() <= count) {
-            throw new IllegalArgumentException(String.format("The event = %s no free space", eventEntity.getName()));
+            throw new EventCapacityExceededException(String.format("The event = %s no free space", eventEntity.getName()));
         }
     }
 
     private void checkOwnerEvent(EventEntity eventEntity, UserEntity userEntity) {
         if (eventEntity.getOwner().getId().equals(userEntity.getId())) {
-            throw new IllegalArgumentException(String.format(
+            throw new OwnerRegistrationException(String.format(
                     "The owner cannot register for his event = %s", eventEntity.getName()));
         }
     }

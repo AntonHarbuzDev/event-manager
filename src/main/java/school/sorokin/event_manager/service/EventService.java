@@ -8,6 +8,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import school.sorokin.event_manager.exception.EventCapacityExceededException;
+import school.sorokin.event_manager.exception.EventWaitStartException;
 import school.sorokin.event_manager.model.Status;
 import school.sorokin.event_manager.model.dto.EventCreateDto;
 import school.sorokin.event_manager.model.dto.EventShowDto;
@@ -113,14 +115,15 @@ public class EventService {
     @Transactional
     public void cancelEvent(Long id) {
         EventEntity loaded = loadEventEntityById(id);
+        checkStatusWait(loaded);
         loaded.setStatus(Status.CANCELLED);
         log.info("Cancel event {} success", loaded);
     }
 
     private void checkCapacityLocation(EventEntity event) {
         if (event.getLocationEntity().getCapacity() < event.getMaxPlaces()) {
-            throw new IllegalArgumentException(String.format("The location = %s cannot accommodate %d people.",
-                    event.getLocationEntity().getName(), event.getDuration()));
+            throw new EventCapacityExceededException(String.format("The location = %s cannot accommodate more %d people.",
+                    event.getLocationEntity().getName(), event.getMaxPlaces()));
         }
     }
 
@@ -139,7 +142,7 @@ public class EventService {
 
     private void checkStatusWait(EventEntity eventEntity) {
         if (!eventEntity.getStatus().equals(Status.WAIT_START)) {
-            throw new IllegalArgumentException(String.format("Status has been %s", Status.WAIT_START));
+            throw new EventWaitStartException(String.format("Status has been %s", Status.WAIT_START));
         }
     }
 
