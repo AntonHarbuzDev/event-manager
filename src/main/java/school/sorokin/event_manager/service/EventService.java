@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -130,14 +129,6 @@ public class EventService {
         UserEntity userEntity = userService.getUserEntityByLogin(authentication.getName());
         return eventEntity.getOwner().equals(userEntity);
     }
-
-//    private void checkOwer(EventEntity event, UserEntity userLogin) {
-//        if (!event.getOwner().getId().equals(userLogin.getId())) {
-//            throw new AuthorizationDeniedException(String.format(
-//                    "User login = %s no owner from event = %s in owner = %s",
-//                    userLogin, event.getName(), event.getOwner()));
-//        }
-//    }
 
     private void checkAlreadyRegistered(EventEntity eventLoaded, EventCreateDto dto) {
         int registeredAlreadyNumber = eventLoaded.getEventRegistrationEntities().size();
