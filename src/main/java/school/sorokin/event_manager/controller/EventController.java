@@ -55,13 +55,14 @@ public class EventController {
 
     @PostMapping("/search")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
-    public ResponseEntity<List<EventShowDto>> getAllForFilter(@RequestBody EventFilter filter) {
+    public ResponseEntity<List<EventShowDto>> getAllForFilter(@RequestBody @Valid EventFilter filter) {
+        log.info("Get request filter = {}", filter);
         List<EventShowDto> result = eventService.getEventsByFilter(filter);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     @PutMapping("/{eventId}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @PreAuthorize("hasAuthority('ADMIN') or @eventService.isOwner(#eventId, authentication)")
     public ResponseEntity<EventShowDto> updateEvent(@RequestBody @Valid EventCreateDto dto,
                                                     @PathVariable Long eventId) {
         log.info("Get request for update event: id = {}, eventDto = {}", eventId, dto);
@@ -70,10 +71,10 @@ public class EventController {
     }
 
     @DeleteMapping("/{eventId}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @PreAuthorize("hasAuthority('ADMIN') or @eventService.isOwner(#eventId, authentication)")
     public ResponseEntity<Void> cancelEvent(@PathVariable Long eventId) {
+        log.info("Get request for cancel event id = {}", eventId);
         eventService.cancelEvent(eventId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
-

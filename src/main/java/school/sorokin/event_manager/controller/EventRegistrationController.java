@@ -29,6 +29,7 @@ public class EventRegistrationController {
 
     @PostMapping("/{eventId}")
     public ResponseEntity<Void> registration(@PathVariable Long eventId) {
+        log.info("Get request for registration event id = {}", eventId);
         eventRegistrationService.registrationEvent(eventId);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -41,6 +42,7 @@ public class EventRegistrationController {
 
     @DeleteMapping("/cancel/{eventId}")
     public ResponseEntity<Void> cancelRegistration(@PathVariable Long eventId) {
+        log.info("Get request for cancel registration event id = {}", eventId);
         eventRegistrationService.cancelRegistration(eventId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

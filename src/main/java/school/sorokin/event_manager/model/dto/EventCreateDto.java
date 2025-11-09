@@ -1,5 +1,6 @@
 package school.sorokin.event_manager.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -8,8 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
 @Data
@@ -23,14 +24,16 @@ public class EventCreateDto {
 
     @NotNull(message = "Date must not be empty")
     @Future(message = "Date must be in the future")
-    @DateTimeFormat(pattern = "${pattern.date-time}")
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private OffsetDateTime date;
 
-    @Min(value = 0, message = "Cost must be positive")
-    private int cost;
+    @Min(value = 0, message = "Cost must not be negative")
+    @NotNull
+    private BigDecimal cost;
 
     @Min(value = 30, message = "Minimum duration 30 minutes")
-    private int duration;
+    @NotNull
+    private Integer duration;
 
     @NotNull(message = "Location id must be specified")
     private Long locationId;

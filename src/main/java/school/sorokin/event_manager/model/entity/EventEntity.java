@@ -1,5 +1,6 @@
 package school.sorokin.event_manager.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -20,6 +21,7 @@ import lombok.ToString;
 import org.springframework.format.annotation.DateTimeFormat;
 import school.sorokin.event_manager.model.Status;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -50,11 +52,11 @@ public class EventEntity {
     private Set<EventRegistrationEntity> eventRegistrationEntities = new HashSet<>();
 
     @Column(name = "date")
-    @DateTimeFormat(pattern = "${pattern.date-time}")
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private OffsetDateTime date;
 
     @Column(name = "cost")
-    private int cost;
+    private BigDecimal cost;
 
     @Column(name = "duration")
     private int duration;
@@ -64,7 +66,7 @@ public class EventEntity {
     private LocationEntity locationEntity;
 
     @Column(name = "maxPlaces")
-    private int maxPlaces;
+    private Integer maxPlaces;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
