@@ -10,11 +10,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import school.sorokin.event_manager.exception.EventCapacityExceededException;
 import school.sorokin.event_manager.exception.EventWaitStartException;
+import school.sorokin.event_manager.model.EventChangeFields;
+import school.sorokin.event_manager.model.EventKafka;
+import school.sorokin.event_manager.model.FieldChange;
 import school.sorokin.event_manager.model.Status;
 import school.sorokin.event_manager.model.dto.EventCreateDto;
 import school.sorokin.event_manager.model.dto.EventShowDto;
 import school.sorokin.event_manager.model.dto.LocationDto;
 import school.sorokin.event_manager.model.entity.EventEntity;
+import school.sorokin.event_manager.model.entity.EventRegistrationEntity;
 import school.sorokin.event_manager.model.entity.LocationEntity;
 import school.sorokin.event_manager.model.entity.UserEntity;
 import school.sorokin.event_manager.model.filter.EventFilter;
@@ -25,6 +29,8 @@ import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +42,7 @@ public class EventService {
     private final LocationService locationService;
     private final UserService userService;
     private final EventSpecifications eventSpecifications;
+    private final EventNotificationService eventNotificationService;
 
     @Transactional
     public EventShowDto createEvent(EventCreateDto dto) {
@@ -101,13 +108,27 @@ public class EventService {
 
     @Transactional
     public EventShowDto updateEvent(EventCreateDto dto, Long id) {
-        EventEntity event = toEntity(dto);
-        checkCapacityLocation(event);
+        EventEntity eventEntityFromDto = toEntity(dto);
+        log.info("Event from dto - {}", eventEntityFromDto);
+        checkCapacityLocation(eventEntityFromDto);
         EventEntity loadedEventEntity = loadEventEntityById(id);
+        log.info("Event from load  - {}", loadedEventEntity);
         checkAlreadyRegistered(loadedEventEntity, dto);
         checkStatusWait(loadedEventEntity);
-        EventEntity updated = updatedFields(loadedEventEntity, event);
+
+        EventKafka eventKafka = EventKafka.builder()
+                .eventId(loadedEventEntity.getId())
+                .userChangedId(getUserFromAuthentication().getId())
+                .ownerId(loadedEventEntity.getOwner().getId())
+                .eventChangeFields(addChangeFields(loadedEventEntity, eventEntityFromDto))
+                .registrationUserIds(loadedEventEntity.getEventRegistrationEntities().stream()
+                        .map(EventRegistrationEntity::getId).collect(Collectors.toSet()))
+                .build();
+        eventNotificationService.create(eventKafka);
+
+        EventEntity updated = updatedFields(loadedEventEntity, eventEntityFromDto);
         EventEntity result = eventRepository.save(updated);
+
         log.info("Update event success {}", result);
         return toShowDto(result);
     }
@@ -204,5 +225,25 @@ public class EventService {
                 locationDto.getCapacity(),
                 locationDto.getDescription()
         );
+    }
+
+    private EventChangeFields addChangeFields(EventEntity entityExisting, EventEntity entityUpdated) {
+        return EventChangeFields.builder()
+                .name(up(entityExisting.getName(), entityUpdated.getName()))
+                .maxPlaces(up(entityExisting.getMaxPlaces(), entityUpdated.getMaxPlaces()))
+                .date(up(entityExisting.getDate(), entityUpdated.getDate()))
+                .cost(up(entityExisting.getCost(), entityUpdated.getCost()))
+                .duration(up(entityExisting.getDuration(), entityUpdated.getDuration()))
+                .locationId(up(entityExisting.getLocationEntity().getId(), entityUpdated.getLocationEntity().getId()))
+                .status(up(entityExisting.getStatus(), entityUpdated.getStatus()))
+                .build();
+    }
+
+    private <T> FieldChange<T> up(T oldField, T newField) {
+        if (newField == null || Objects.equals(oldField, newField)) {
+            return null;
+        } else {
+            return new FieldChange<>(oldField, newField);
+        }
     }
 }
