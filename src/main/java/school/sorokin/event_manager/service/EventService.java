@@ -18,11 +18,11 @@ import school.sorokin.event_manager.model.dto.EventCreateDto;
 import school.sorokin.event_manager.model.dto.EventShowDto;
 import school.sorokin.event_manager.model.dto.LocationDto;
 import school.sorokin.event_manager.model.entity.EventEntity;
-import school.sorokin.event_manager.model.entity.EventRegistrationEntity;
 import school.sorokin.event_manager.model.entity.LocationEntity;
 import school.sorokin.event_manager.model.entity.UserEntity;
 import school.sorokin.event_manager.model.filter.EventFilter;
 import school.sorokin.event_manager.repository.EventRepository;
+import school.sorokin.event_manager.service.sender.EventSender;
 import school.sorokin.event_manager.service.specification.EventSpecifications;
 
 import java.time.OffsetDateTime;
@@ -42,7 +42,8 @@ public class EventService {
     private final LocationService locationService;
     private final UserService userService;
     private final EventSpecifications eventSpecifications;
-    private final EventNotificationService eventNotificationService;
+//    private final EventNotificationService eventNotificationService;
+    private final EventSender eventSender;
 
     @Transactional
     public EventShowDto createEvent(EventCreateDto dto) {
@@ -122,9 +123,9 @@ public class EventService {
                 .ownerId(loadedEventEntity.getOwner().getId())
                 .eventChangeFields(addChangeFields(loadedEventEntity, eventEntityFromDto))
                 .registrationUserIds(loadedEventEntity.getEventRegistrationEntities().stream()
-                        .map(EventRegistrationEntity::getId).collect(Collectors.toSet()))
+                        .map(entity -> entity.getUserEntity().getId()).collect(Collectors.toSet()))
                 .build();
-        eventNotificationService.create(eventKafka);
+        eventSender.sendEvent(eventKafka);
 
         EventEntity updated = updatedFields(loadedEventEntity, eventEntityFromDto);
         EventEntity result = eventRepository.save(updated);

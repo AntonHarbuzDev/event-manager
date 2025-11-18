@@ -13,7 +13,6 @@ import java.util.Set;
 @NoArgsConstructor
 public class EventKafka {
 
-    private Long id;
     private Long eventId;
     private Long ownerId;
     private Long userChangedId;

@@ -50,7 +50,6 @@ public class SecurityConfiguration {
                                 "/configuration/**",
                                 "/static/**",
                                 "/openapi.yaml",
-                                "/event-notificator-openapi.yaml",
                                 "/openapi.yml",
                                 "/favicon.ico"
                         ).permitAll()
