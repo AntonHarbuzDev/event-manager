@@ -42,7 +42,6 @@ public class EventService {
     private final LocationService locationService;
     private final UserService userService;
     private final EventSpecifications eventSpecifications;
-//    private final EventNotificationService eventNotificationService;
     private final EventSender eventSender;
 
     @Transactional
@@ -102,6 +101,17 @@ public class EventService {
 
     @Transactional
     public void updateEventStatus(EventEntity eventEntity, Status status) {
+        EventKafka eventKafka = EventKafka.builder()
+                .eventId(eventEntity.getId())
+                .userChangedId(null)
+                .ownerId(eventEntity.getOwner().getId())
+                .eventChangeFields(EventChangeFields.builder().status(new FieldChange<>(eventEntity.getStatus(), status)).build())
+                .registrationUserIds(eventEntity.getEventRegistrationEntities().stream()
+                        .map(entity -> entity.getUserEntity().getId()).collect(Collectors.toSet()))
+                .build();
+        eventSender.sendEvent(eventKafka);
+        log.info("sent event to kafka {}", eventKafka);
+
         eventEntity.setStatus(status);
         eventRepository.save(eventEntity);
         log.info("The event = {} status has been switched to {}", eventEntity.getName(), status);
@@ -228,19 +238,30 @@ public class EventService {
         );
     }
 
+//    private EventKafka toEventKafka(EventEntity eventEntity, EventCreateDto dto) {
+//        return EventKafka.builder()
+//                .eventId(eventEntity.getId())
+//                .userChangedId(getUserFromAuthentication().getId())
+//                .ownerId(eventEntity.getOwner().getId())
+//                .eventChangeFields(addChangeFields(eventEntity, eventEntityFromDto))
+//                .registrationUserIds(eventEntity.getEventRegistrationEntities().stream()
+//                        .map(entity -> entity.getUserEntity().getId()).collect(Collectors.toSet()))
+//                .build();
+//    }
+
     private EventChangeFields addChangeFields(EventEntity entityExisting, EventEntity entityUpdated) {
         return EventChangeFields.builder()
-                .name(up(entityExisting.getName(), entityUpdated.getName()))
-                .maxPlaces(up(entityExisting.getMaxPlaces(), entityUpdated.getMaxPlaces()))
-                .date(up(entityExisting.getDate(), entityUpdated.getDate()))
-                .cost(up(entityExisting.getCost(), entityUpdated.getCost()))
-                .duration(up(entityExisting.getDuration(), entityUpdated.getDuration()))
-                .locationId(up(entityExisting.getLocationEntity().getId(), entityUpdated.getLocationEntity().getId()))
-                .status(up(entityExisting.getStatus(), entityUpdated.getStatus()))
+                .name(addChange(entityExisting.getName(), entityUpdated.getName()))
+                .maxPlaces(addChange(entityExisting.getMaxPlaces(), entityUpdated.getMaxPlaces()))
+                .date(addChange(entityExisting.getDate(), entityUpdated.getDate()))
+                .cost(addChange(entityExisting.getCost(), entityUpdated.getCost()))
+                .duration(addChange(entityExisting.getDuration(), entityUpdated.getDuration()))
+                .locationId(addChange(entityExisting.getLocationEntity().getId(), entityUpdated.getLocationEntity().getId()))
+                .status(addChange(entityExisting.getStatus(), entityUpdated.getStatus()))
                 .build();
     }
 
-    private <T> FieldChange<T> up(T oldField, T newField) {
+    private <T> FieldChange<T> addChange(T oldField, T newField) {
         if (newField == null || Objects.equals(oldField, newField)) {
             return null;
         } else {
