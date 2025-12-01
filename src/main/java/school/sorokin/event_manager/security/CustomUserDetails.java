@@ -1,6 +1,7 @@
 package school.sorokin.event_manager.security;
 
 import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,19 +10,13 @@ import java.util.Collection;
 import java.util.List;
 
 @Builder
+@RequiredArgsConstructor
 public class CustomUserDetails implements UserDetails {
 
     private final Long id;
     private final String username;
     private final String password;
     private final String authority;
-
-    public CustomUserDetails(Long id, String username, String password, String authority) {
-        this.id = id;
-        this.username = username;
-        this.password = password;
-        this.authority = authority;
-    }
 
     public Long getId() {
         return id;

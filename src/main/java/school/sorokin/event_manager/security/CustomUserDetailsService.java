@@ -30,10 +30,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         }
         UserEntity userEntity = userRepository.findByLogin(username).orElseThrow(() ->
                 new UsernameNotFoundException("User with login = " + username + " no found"));
-//        return User.withUsername(username)
-//                .password(userEntity.getPassword())
-//                .authorities(userEntity.getRole().name())
-//                .build();
 
         return CustomUserDetails.builder()
                 .id(userEntity.getId())
