@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import school.sorokin.event_manager.exception.EventCapacityExceededException;
 import school.sorokin.event_manager.exception.EventWaitStartException;
+import school.sorokin.event_manager.model.EventChangeFields;
+import school.sorokin.event_manager.model.EventKafka;
+import school.sorokin.event_manager.model.FieldChange;
 import school.sorokin.event_manager.model.Status;
 import school.sorokin.event_manager.model.dto.EventCreateDto;
 import school.sorokin.event_manager.model.dto.EventShowDto;
@@ -19,12 +22,15 @@ import school.sorokin.event_manager.model.entity.LocationEntity;
 import school.sorokin.event_manager.model.entity.UserEntity;
 import school.sorokin.event_manager.model.filter.EventFilter;
 import school.sorokin.event_manager.repository.EventRepository;
+import school.sorokin.event_manager.service.sender.EventSender;
 import school.sorokin.event_manager.service.specification.EventSpecifications;
 
 import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +42,7 @@ public class EventService {
     private final LocationService locationService;
     private final UserService userService;
     private final EventSpecifications eventSpecifications;
+    private final EventSender eventSender;
 
     @Transactional
     public EventShowDto createEvent(EventCreateDto dto) {
@@ -94,6 +101,17 @@ public class EventService {
 
     @Transactional
     public void updateEventStatus(EventEntity eventEntity, Status status) {
+        EventKafka eventKafka = EventKafka.builder()
+                .eventId(eventEntity.getId())
+                .userChangedId(null)
+                .ownerId(eventEntity.getOwner().getId())
+                .eventChangeFields(EventChangeFields.builder().status(new FieldChange<>(eventEntity.getStatus(), status)).build())
+                .registrationUserIds(eventEntity.getEventRegistrationEntities().stream()
+                        .map(entity -> entity.getUserEntity().getId()).collect(Collectors.toSet()))
+                .build();
+        eventSender.sendEvent(eventKafka);
+        log.info("sent event to kafka {}", eventKafka);
+
         eventEntity.setStatus(status);
         eventRepository.save(eventEntity);
         log.info("The event = {} status has been switched to {}", eventEntity.getName(), status);
@@ -101,13 +119,27 @@ public class EventService {
 
     @Transactional
     public EventShowDto updateEvent(EventCreateDto dto, Long id) {
-        EventEntity event = toEntity(dto);
-        checkCapacityLocation(event);
+        EventEntity eventEntityFromDto = toEntity(dto);
+        log.info("Event from dto - {}", eventEntityFromDto);
+        checkCapacityLocation(eventEntityFromDto);
         EventEntity loadedEventEntity = loadEventEntityById(id);
+        log.info("Event from load  - {}", loadedEventEntity);
         checkAlreadyRegistered(loadedEventEntity, dto);
         checkStatusWait(loadedEventEntity);
-        EventEntity updated = updatedFields(loadedEventEntity, event);
+
+        EventKafka eventKafka = EventKafka.builder()
+                .eventId(loadedEventEntity.getId())
+                .userChangedId(getUserFromAuthentication().getId())
+                .ownerId(loadedEventEntity.getOwner().getId())
+                .eventChangeFields(addChangeFields(loadedEventEntity, eventEntityFromDto))
+                .registrationUserIds(loadedEventEntity.getEventRegistrationEntities().stream()
+                        .map(entity -> entity.getUserEntity().getId()).collect(Collectors.toSet()))
+                .build();
+        eventSender.sendEvent(eventKafka);
+
+        EventEntity updated = updatedFields(loadedEventEntity, eventEntityFromDto);
         EventEntity result = eventRepository.save(updated);
+
         log.info("Update event success {}", result);
         return toShowDto(result);
     }
@@ -204,5 +236,36 @@ public class EventService {
                 locationDto.getCapacity(),
                 locationDto.getDescription()
         );
+    }
+
+//    private EventKafka toEventKafka(EventEntity eventEntity, EventCreateDto dto) {
+//        return EventKafka.builder()
+//                .eventId(eventEntity.getId())
+//                .userChangedId(getUserFromAuthentication().getId())
+//                .ownerId(eventEntity.getOwner().getId())
+//                .eventChangeFields(addChangeFields(eventEntity, eventEntityFromDto))
+//                .registrationUserIds(eventEntity.getEventRegistrationEntities().stream()
+//                        .map(entity -> entity.getUserEntity().getId()).collect(Collectors.toSet()))
+//                .build();
+//    }
+
+    private EventChangeFields addChangeFields(EventEntity entityExisting, EventEntity entityUpdated) {
+        return EventChangeFields.builder()
+                .name(addChange(entityExisting.getName(), entityUpdated.getName()))
+                .maxPlaces(addChange(entityExisting.getMaxPlaces(), entityUpdated.getMaxPlaces()))
+                .date(addChange(entityExisting.getDate(), entityUpdated.getDate()))
+                .cost(addChange(entityExisting.getCost(), entityUpdated.getCost()))
+                .duration(addChange(entityExisting.getDuration(), entityUpdated.getDuration()))
+                .locationId(addChange(entityExisting.getLocationEntity().getId(), entityUpdated.getLocationEntity().getId()))
+                .status(addChange(entityExisting.getStatus(), entityUpdated.getStatus()))
+                .build();
+    }
+
+    private <T> FieldChange<T> addChange(T oldField, T newField) {
+        if (newField == null || Objects.equals(oldField, newField)) {
+            return null;
+        } else {
+            return new FieldChange<>(oldField, newField);
+        }
     }
 }

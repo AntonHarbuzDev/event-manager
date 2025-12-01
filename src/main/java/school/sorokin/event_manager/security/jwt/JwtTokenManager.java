@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import school.sorokin.event_manager.security.CustomUserDetails;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -29,12 +30,18 @@ public class JwtTokenManager {
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
+        Long userId = null;
+        if (userDetails instanceof CustomUserDetails customUserDetails) {
+            userId = customUserDetails.getId();
+        }
+
         return Jwts.builder()
                 .subject(userDetails.getUsername())
                 .signWith(secretKey)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .claim("roles", roles)
+                .claim("userId", userId)
                 .compact();
     }
 
